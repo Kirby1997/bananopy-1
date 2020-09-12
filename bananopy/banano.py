@@ -1,7 +1,7 @@
 import requests
 from collections import defaultdict
 
-from bananopy.constants import BANANO_API
+from bananopy.constants import BANANO_API, PIPPIN_API
 from bananopy.utils import fix_json
 from bananopy.conversion import convert
 
@@ -10,7 +10,9 @@ class NodeException(Exception):
     """ Base class for RPC errors """
 
 
-def call(action, params=None, url=BANANO_API):
+def call(action, params=None, url=BANANO_API, pippin=False, pippinurl=PIPPIN_API):
+    if pippin and pippinurl:
+        url = pippinurl
     params = params or {}
     params["action"] = action
     response = requests.post(url, json=params)
@@ -664,12 +666,12 @@ def account_create(wallet, index=None, work=True):
         "work": work,
         **({"index": index} if index else {}),
     }
-    return call("account_create", payload)
+    return call("account_create", payload, pippin=True)
 
 
 def account_list(wallet):
     payload = {"wallet": wallet}
-    return call("account_list", payload)
+    return call("account_list", payload, pippin=True)
 
 
 def account_move(wallet, source, accounts):
@@ -695,7 +697,7 @@ def account_representative_set(wallet, account, representative, work=None):
         "representative": representative,
         **({"work": work} if work else {}),
     }
-    return call("account_representative_set", payload)
+    return call("account_representative_set", payload, pippin=True)
 
 
 def accounts_create(wallet, count, work=True):
@@ -704,24 +706,24 @@ def accounts_create(wallet, count, work=True):
         "count": count,
         "work": work,
     }
-    return call("accounts_create", payload)
+    return call("accounts_create", payload, pippin=True)
 
 
 def password_change(wallet, password):
     payload = {"wallet": wallet, "password": password}
-    r = call("password_change", payload)
+    r = call("password_change", payload, pippin=True)
     return fix_json(r)
 
 
 def password_enter(wallet, password):
     payload = {"wallet": wallet, "password": password}
-    r = call("password_enter", payload)
+    r = call("password_enter", payload, pippin=True)
     return fix_json(r)
 
 
 def password_valid(wallet):
     payload = {"wallet": wallet}
-    r = call("password_valid", payload)
+    r = call("password_valid", payload, pippin=True)
     return fix_json(r)
 
 
@@ -732,7 +734,7 @@ def receive(wallet, account, block, work=None):
         "block": block,
         **({"work": work} if work else {}),
     }
-    return call("receive", payload)
+    return call("receive", payload, pippin=True)
 
 
 def receive_minimum():
@@ -766,12 +768,12 @@ def send(wallet, source, destination, amount, id=None, work=None):
         **({"id": id} if id else {}),
         **({"work": work} if work else {}),
     }
-    return call("send", payload)
+    return call("send", payload, pippin=True)
 
 
 def wallet_add(wallet, key, work=False):
     payload = {"wallet": wallet, "key": key, "work": work}
-    return call("wallet_add", payload)
+    return call("wallet_add", payload, pippin=True)
 
 
 def wallet_add_watch(wallet, accounts):
@@ -785,7 +787,7 @@ def wallet_balances(wallet, threshold=None):
         "wallet": wallet,
         **({"threshold": threshold} if threshold else {}),
     }
-    r = call("wallet_balances", payload)
+    r = call("wallet_balances", payload, pippin=True)
     return fix_json(r)
 
 
@@ -795,13 +797,13 @@ def wallet_change_seed(wallet, seed, count=0):
         "seed": seed,
         "count": count,
     }
-    r = call("wallet_change_seed", payload)
+    r = call("wallet_change_seed", payload, pippin=True)
     return fix_json(r)
 
 
 def wallet_contains(wallet, account):
     payload = {"wallet": wallet, "account": account}
-    r = call("wallet_contains", payload)
+    r = call("wallet_contains", payload, pippin=True)
     return fix_json(r)
 
 
@@ -809,12 +811,12 @@ def wallet_create(seed=None):
     payload = {
         **({"seed": seed} if seed else {}),
     }
-    return call("wallet_create", payload)
+    return call("wallet_create", payload, pippin=True)
 
 
 def wallet_destroy(wallet):
     payload = {"wallet": wallet}
-    r = call("wallet_destroy", payload)
+    r = call("wallet_destroy", payload, pippin=True)
     return fix_json(r)
 
 
@@ -826,7 +828,7 @@ def wallet_export(wallet):
 
 def wallet_frontiers(wallet):
     payload = {"wallet": wallet}
-    return call("wallet_frontiers", payload)
+    return call("wallet_frontiers", payload, pippin=True)
 
 
 def wallet_history(wallet, modified_since=0):
@@ -860,13 +862,13 @@ def wallet_ledger(
 
 def wallet_lock(wallet):
     payload = {"wallet": wallet}
-    r = call("wallet_lock", payload)
+    r = call("wallet_lock", payload, pippin=True)
     return fix_json(r)
 
 
 def wallet_locked(wallet):
     payload = {"wallet": wallet}
-    r = call("wallet_locked", payload)
+    r = call("wallet_locked", payload, pippin=True)
     return fix_json(r)
 
 
@@ -888,13 +890,13 @@ def wallet_pending(
         "min_version": min_version,
         "include_only_confirmed": include_only_confirmed,
     }
-    r = call("wallet_pending", payload)
+    r = call("wallet_pending", payload, pippin=True)
     return fix_json(r)
 
 
 def wallet_representative(wallet):
     payload = {"wallet": wallet}
-    return call("wallet_representative", payload)
+    return call("wallet_representative", payload, pippin=True)
 
 
 def wallet_representative_set(wallet, representative, update_existing_accounts=False):
@@ -903,7 +905,7 @@ def wallet_representative_set(wallet, representative, update_existing_accounts=F
         "representative": representative,
         "update_existing_accounts": update_existing_accounts,
     }
-    r = call("wallet_representative_set", payload)
+    r = call("wallet_representative_set", payload, pippin=True)
     return fix_json(r)
 
 
@@ -926,6 +928,11 @@ def work_set(wallet, account, work):
     payload = {"wallet": wallet, "account": account, "work": work}
     r = call("work_set", payload)
     return fix_json(r)
+
+
+def receive_all(wallet):
+    payload = {"wallet": wallet}
+    return call("work_get", payload, pippin=True)
 
 
 # shortcuts
